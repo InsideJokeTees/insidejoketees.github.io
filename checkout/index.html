@@ -21,6 +21,8 @@
   a.item.done{opacity:.55}
   a.item.done span::before{content:'✓ Opened · '}
   .all{display:block;text-align:center;margin-top:14px;color:var(--accent)}
+  .tot{display:flex;justify-content:space-between;font-weight:700;padding:12px 4px;border-top:1px solid var(--line);margin-top:6px}
+  .fine{font-size:.8rem;color:var(--muted);margin:4px 4px 0}
   .code{background:var(--card);border:1px dashed var(--accent);border-radius:10px;padding:10px 14px;margin-bottom:18px}
 </style>
 </head>
@@ -56,15 +58,18 @@
       var name = p ? esc(p[0]) : 'Item ' + (n + 1);
       var img = p ? '<img alt="" src="https://i.etsystatic.com/54277816/r/il/' + p[1] + '/' + p[2] + '/il_340x270.' + p[2] + '_' + p[3] + '.jpg">' : '';
       html += '<a class="item" target="_blank" rel="noopener" href="' + listingUrl(it.id) + '">' + img +
-        '<div class="nm">' + name + (it.qty > 1 ? '<small>Qty ' + it.qty + '</small>' : '') + '</div><span>Open →</span></a>';
+        '<div class="nm">' + name + '<small>' + (p ? '$' + (p[4] * it.qty).toFixed(2) + (it.qty > 1 ? ' (' + it.qty + ' × $' + p[4].toFixed(2) + ')' : '') : (it.qty > 1 ? 'Qty ' + it.qty : '')) + '</small>' + '</div><span>Open →</span></a>';
     });
+    var sub = 0, known = true;
+    items.forEach(function (it) { var p = info[it.id]; if (p) sub += p[4] * it.qty; else known = false; });
+    if (known) html += '<div class="tot"><span>Subtotal</span><span>$' + sub.toFixed(2) + '</span></div><p class="fine">Free standard shipping (US). Final price, size and color are confirmed on Etsy.</p>';
     html += '<a class="all" href="' + SHOP + '">Or browse the whole shop on Etsy</a>';
     app.innerHTML = html;
     [].forEach.call(document.querySelectorAll('a.item'), function (a) {
       a.addEventListener('click', function () { a.classList.add('done'); });
     });
   }
-  fetch('products.json').then(function (r) { return r.json(); }).then(render).catch(function () { render({}); });
+  fetch('products.json?v=2').then(function (r) { return r.json(); }).then(render).catch(function () { render({}); });
 })();
 </script>
 </body>
