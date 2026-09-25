@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Checkout – InsideJokeTees</title>
+<style>
+  :root{--bg:#faf7f2;--card:#fff;--ink:#222;--muted:#666;--accent:#b8325a;--line:#e8e2d9}
+  @media (prefers-color-scheme:dark){:root{--bg:#18161a;--card:#231f25;--ink:#f2eee9;--muted:#aaa;--accent:#ff7aa2;--line:#3a3440}}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);padding:24px 16px}
+  main{max-width:480px;margin:0 auto}
+  h1{font-size:1.4rem;margin:0 0 6px}
+  p{color:var(--muted);margin:0 0 18px;line-height:1.45}
+  a.item{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;color:var(--ink);text-decoration:none;font-weight:600}
+  a.item span{color:var(--accent);white-space:nowrap}
+  .code{background:var(--card);border:1px dashed var(--accent);border-radius:10px;padding:10px 14px;margin-bottom:18px}
+</style>
+</head>
+<body>
+<main id="app"><p>Taking you to checkout on Etsy…</p></main>
+<script>
+(function () {
+  var SHOP = 'https://insidejoketeesshop.etsy.com';
+  var q = new URLSearchParams(location.search);
+  var coupon = (q.get('coupon') || '').trim();
+  var items = (q.get('products') || '').split(',').map(function (p) {
+    var parts = p.split(':');
+    var id = (parts[0] || '').replace(/\D/g, '');
+    var qty = parseInt(parts[1], 10) || 1;
+    return id ? { id: id, qty: qty } : null;
+  }).filter(Boolean);
+
+  function listingUrl(id) {
+    var u = SHOP + '/listing/' + id;
+    return coupon ? u + '?coupon=' + encodeURIComponent(coupon) : u;
+  }
+
+  if (items.length === 0) { location.replace(SHOP); return; }
+  if (items.length === 1) { location.replace(listingUrl(items[0].id)); return; }
+
+  var app = document.getElementById('app');
+  var html = '<h1>Almost there!</h1><p>Our shop checks out on Etsy. Tap each item to pick your size/color and add it to your Etsy cart.</p>';
+  if (coupon) html += '<div class="code">Coupon code: <strong>' + coupon.replace(/[<>&"]/g, '') + '</strong></div>';
+  items.forEach(function (it, n) {
+    html += '<a class="item" href="' + listingUrl(it.id) + '">Item ' + (n + 1) + (it.qty > 1 ? ' (qty ' + it.qty + ')' : '') + '<span>Open on Etsy →</span></a>';
+  });
+  app.innerHTML = html;
+})();
+</script>
+</body>
+</html>
