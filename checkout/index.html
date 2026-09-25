@@ -15,6 +15,12 @@
   p{color:var(--muted);margin:0 0 18px;line-height:1.45}
   a.item{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;color:var(--ink);text-decoration:none;font-weight:600}
   a.item span{color:var(--accent);white-space:nowrap}
+  a.item img{width:56px;height:56px;object-fit:cover;border-radius:8px;flex:none;background:var(--line)}
+  a.item .nm{flex:1;min-width:0}
+  a.item .nm small{display:block;font-weight:400;color:var(--muted)}
+  a.item.done{opacity:.55}
+  a.item.done span::before{content:'✓ Opened · '}
+  .all{display:block;text-align:center;margin-top:14px;color:var(--accent)}
   .code{background:var(--card);border:1px dashed var(--accent);border-radius:10px;padding:10px 14px;margin-bottom:18px}
 </style>
 </head>
@@ -41,12 +47,24 @@
   if (items.length === 1) { location.replace(listingUrl(items[0].id)); return; }
 
   var app = document.getElementById('app');
-  var html = '<h1>Almost there!</h1><p>Our shop checks out on Etsy. Tap each item to pick your size/color and add it to your Etsy cart.</p>';
-  if (coupon) html += '<div class="code">Coupon code: <strong>' + coupon.replace(/[<>&"]/g, '') + '</strong></div>';
-  items.forEach(function (it, n) {
-    html += '<a class="item" href="' + listingUrl(it.id) + '">Item ' + (n + 1) + (it.qty > 1 ? ' (qty ' + it.qty + ')' : '') + '<span>Open on Etsy →</span></a>';
-  });
-  app.innerHTML = html;
+  function esc(x){return String(x).replace(/[<>&"]/g,'')}
+  function render(info){
+    var html = '<h1>Almost there!</h1><p>We check out on Etsy. Tap each item to pick your size/color and add it to your Etsy cart.</p>';
+    if (coupon) html += '<div class="code">Coupon code: <strong>' + esc(coupon) + '</strong></div>';
+    items.forEach(function (it, n) {
+      var p = info[it.id];
+      var name = p ? esc(p[0]) : 'Item ' + (n + 1);
+      var img = p ? '<img alt="" src="https://i.etsystatic.com/54277816/r/il/' + p[1] + '/' + p[2] + '/il_340x270.' + p[2] + '_' + p[3] + '.jpg">' : '';
+      html += '<a class="item" target="_blank" rel="noopener" href="' + listingUrl(it.id) + '">' + img +
+        '<div class="nm">' + name + (it.qty > 1 ? '<small>Qty ' + it.qty + '</small>' : '') + '</div><span>Open →</span></a>';
+    });
+    html += '<a class="all" href="' + SHOP + '">Or browse the whole shop on Etsy</a>';
+    app.innerHTML = html;
+    [].forEach.call(document.querySelectorAll('a.item'), function (a) {
+      a.addEventListener('click', function () { a.classList.add('done'); });
+    });
+  }
+  fetch('products.json').then(function (r) { return r.json(); }).then(render).catch(function () { render({}); });
 })();
 </script>
 </body>
